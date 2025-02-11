@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>Sign Up</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -17,10 +17,13 @@
         </ul>
     </nav>
 
-    <header>
-        <h1>Welcome to Our Website</h1>
-        <p>Your go-to platform for amazing content.</p>
-    </header>
+    <h2>Sign Up</h2>
+    <form action="process_signup.php" method="POST">
+        <p>Username: <input type="text" name="username" required /></p>
+        <p>Email: <input type="email" name="email" required /></p>
+        <p>Password: <input type="password" name="password" required /></p>
+        <p><input type="submit" value="Sign Up" /></p>
+    </form>
 
 </body>
 </html>

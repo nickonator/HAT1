@@ -5,9 +5,22 @@ import json
 import os
 
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'super-secret-key'  # Change this in production
-jwt = JWTManager(app)
 
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

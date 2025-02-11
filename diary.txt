@@ -2,4 +2,6 @@
 - created the HAT1 repository and set up the codespace.
 3/02/2024
 - import flask module and JWT
+11/02/2024
+- created basic html structure for most webpages, basic css styling
 
