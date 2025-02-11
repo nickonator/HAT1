@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>Book Catalogue</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -11,17 +11,14 @@
     <nav>
         <ul>
             <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('login') }}">Sign In</a></li>
-            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
             <li><a href="{{ url_for('bookCatalogue') }}">Book Catalogue</a></li>
             <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
         </ul>
     </nav>
 
-    <header>
-        <h1>Welcome to Our Website</h1>
-        <p>Your go-to platform for amazing content.</p>
-    </header>
+    <h2>Books</h2>
+    <p>book1</p>
+    <p>book2</p>
 
 </body>
 </html>
