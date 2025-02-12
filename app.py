@@ -48,7 +48,7 @@ def PasswordCompare(hashed_password, provided_password):
 def AddUser(username, email, password):
     connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (username, email, password,)) #FIX THIS
+    cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (username, email, password,)) 
     connection.commit()
     connection.close()
 
@@ -72,7 +72,7 @@ def signup():
             AddUser(username, email, password)
             access_token = create_access_token(identity=username)
             response = make_response(render_template("index.html"))
-            response.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='None') 
+            response.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='Strict') 
             return response
         else:
             return "unsuccessful"  
