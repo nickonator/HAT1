@@ -72,7 +72,7 @@ def signup():
             AddUser(username, email, password)
             access_token = create_access_token(identity=username)
             response = make_response(render_template("index.html"))
-            response.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='Strict') 
+            response.set_cookie('access_token_cookie', access_token, secure=True, samesite='Strict') 
             return response
         else:
             return "unsuccessful"  
