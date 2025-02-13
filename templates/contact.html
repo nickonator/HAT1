@@ -10,48 +10,6 @@
 
     <nav>
         <ul>
-            <div id="nocookie">
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('login') }}" style="visibility: hidden; display: none;">Sign In</a></li>
-                <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-                <li><a href="{{ url_for('bookCatalogue') }}">Book Catalogue</a></li>
-                <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-            </div>
-            <div id="cookie">
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('bookCatalogue') }}">Book Catalogue</a></li>
-                <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-            </div>
-            <script type="text/javascript">
-                function Get_Cookie(name) {
-                    var start = document.cookie.indexOf(name + "=");
-                    if (start === -1) return null; // Cookie not found
-                    var len = start + name.length + 1;
-                    var end = document.cookie.indexOf(";", len);
-                    if (end === -1) end = document.cookie.length;
-                    return decodeURIComponent(document.cookie.substring(len, end));
-                }
-            
-                function cookiecheck() {
-                    var cookietest = Get_Cookie('access_token_cookie');
-                    if (cookietest == null || cookietest == "") 
-                    {
-                        document.getElementById("nocookie").innerHTML.style("visibility")="hidden";
-                    } 
-                    else 
-                    {
-                        document.getElementById("cookie").innerHTML.style("visibility")="hidden"; 
-                    }
-                }
-                cookiecheck();
-            </script>
-        </ul>
-    </nav>
-
-<!--
-    <nav>
-        <ul>
-           
             <div id="nocookie" style="display: none;">
                 <li><a href="{{ url_for('home') }}">Home</a></li>
                 <li><a href="{{ url_for('login') }}">Sign In</a></li>
@@ -67,37 +25,31 @@
             </div>
 
             <script type="text/javascript">
-                // Function to get a cookie by name
                 function Get_Cookie(name) {
                     var start = document.cookie.indexOf(name + "=");
-                    if (start === -1) return null; // Cookie not found
+                    if (start === -1) return null; 
                     var len = start + name.length + 1;
                     var end = document.cookie.indexOf(";", len);
                     if (end === -1) end = document.cookie.length;
                     return decodeURIComponent(document.cookie.substring(len, end));
                 }
 
-                // Function to check for the presence of a specific cookie
                 function cookiecheck() {
-                    var cookietest = Get_Cookie('access_token_cookie'); // Check for 'access_token_cookie'
+                    var cookietest = Get_Cookie('access_token_cookie'); 
 
                     if (cookietest == null || cookietest.trim() === "") {
-                        // If no cookie, show 'nocookie' div
                         document.getElementById("nocookie").style.display = "block";
                         document.getElementById("cookie").style.display = "none";
                     } else {
-                        // If cookie exists, show 'cookie' div
                         document.getElementById("nocookie").style.display = "none";
                         document.getElementById("cookie").style.display = "block";
                     }
                 }
-
-                // Run the cookie check function
                 cookiecheck();
             </script>
         </ul>
     </nav>
--->
+
 
     <h2>Contact Us</h2>
     <p>Email: support@example.com</p>
