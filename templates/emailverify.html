@@ -1,36 +1,22 @@
-<!--<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <h2>Verify Email</h2>
-    <form action="/verify_email" method="POST">
-        <p>Email Code: <input type="text" name="email code" required /></p>
-        <p><input type="submit" value="Verify Email" /></p>
-    </form>
-
-</body>
-</html>
--->
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h2>Verify Email</h2>
-    <form action="/verify_email" method="POST">
-        <p>Email Code: <input type="text" name="email code" required /></p>
-        <p><input type="submit" value="Verify Email" /></p>
-    </form>
+  <h2>Verify Email</h2>
+  <form action="{{ url_for('EmailVerificationCode') }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <!-- Hidden fields to carry over the necessary data -->
+    <input type="hidden" name="generated_code" value="{{ code }}">
+    <input type="hidden" name="email" value="{{ email }}">
+    <input type="hidden" name="username" value="{{ username }}">
+    <input type="hidden" name="hashed_password" value="{{ hashed_password }}">
+    <p>Email Code: <input type="text" name="email code" required /></p>
+    <p><input type="submit" value="Verify Email" /></p>
+  </form>
 </body>
 </html>

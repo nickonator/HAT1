@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, make_response, session, redirect, url_for
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask import Flask, render_template, request, make_response, redirect, url_for, jsonify, flash
+from flask_jwt_extended import JWTManager, create_access_token
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter.errors import RateLimitExceeded
 import sqlite3
 from dotenv import load_dotenv
 import os
@@ -9,15 +11,35 @@ import certifi
 import ssl
 import random
 import bcrypt
-
-
+import logging
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import redis
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24) 
-app.config['JWT_SECRET_KEY'] = 'super-secret-key'
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 jwt = JWTManager(app)
+csrf = CSRFProtect(app)
+redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
+limiter = Limiter(get_remote_address, app=app, storage_uri=os.getenv("REDIS_URL", "redis://localhost:6379"))
+logging.basicConfig(level=logging.INFO) 
 load_dotenv()
+
+@app.errorhandler(RateLimitExceeded)
+def ratelimit_handler(e):
+    flash("Rate limit exceeded. Please try again later.", "error")
+    return redirect(url_for('login'))
+
+"""
+connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
+cursor = connection.cursor()
+cursor.execute("INSERT INTO catalogue VALUES (?, ?, ?)", ("book1", "images/image.png", "blurb",)) 
+connection.commit()
+connection.close()
+
+"""
 
 """
 connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
@@ -34,62 +56,60 @@ def SendMail(recipient, title, content):
     email_reciever = recipient
     subject = title
     body = content
-
     em = EmailMessage()
     em['From'] = email_sender
     em['To'] = email_reciever
     em['Subject'] = subject
     em.set_content(body)
-
     context = ssl.create_default_context(cafile=certifi.where())
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
         smtp.login(email_sender, email_password)
         smtp.sendmail(email_sender, email_reciever, em.as_string())
 
-def EmailVerificationCode(email):
-    emailCode = str(random.randint(1000, 1000000))
-    SendMail(email, "Library activation code", str(emailCode))
-    session['email_code'] = emailCode
-    return redirect(url_for('verify_email'))
 
 @app.route('/verify_email', methods=['GET', 'POST'])
-def verify_email():
-    if request.method == 'POST':
-        email_code = request.form.get("email code")
+def EmailVerificationCode():
+    if request.method == 'GET':
+        # Get data from query parameters on GET
+        username = request.args.get("username")  
+        email = request.args.get("email")  
+        hashed_password = request.args.get("hashed_password")
+        emailCode = request.args.get("code")
+        return render_template("emailverify.html",
+                               email=email,
+                               username=username,
+                               hashed_password=hashed_password,
+                               code=emailCode)
+    else: 
+        username = request.form.get("username")
+        email = request.form.get("email")
+        hashed_password = request.form.get("hashed_password")
+        generated_code = request.form.get("generated_code")
+        entered_code = request.form.get("email code")
         
-        if email_code:
-            # Check if the code entered matches the stored code in the session
-            if session.get('email_code') == email_code:
-                # Code matches, now add the user to the database
-                user_data = session.get('user_data')
-                if user_data:
-                    AddUser(user_data['username'], user_data['email'], user_data['password'])
-                    access_token = create_access_token(identity=user_data['username'])
-                    response = make_response(redirect(url_for('home')))  # Redirect to home after successful registration
-                    response.set_cookie('access_token_cookie', access_token, secure=True, samesite='Strict') 
-                    return response
-                else:
-                    return render_template("index.html")
-            else:
-                # Code does not match, render an error message
-                return render_template("index.html", error="Incorrect verification code")
-    return render_template("emailverify.html")
+        if  PasswordCompare(generated_code, entered_code) == True:
+            AddUser(username, email, hashed_password)
+            access_token = create_access_token(identity=username)
+            response = make_response(redirect(url_for('home')))
+            response.set_cookie('access_token_cookie', access_token, secure=True, samesite='Strict') 
+            return response
+        else:
+            logging.warning(f"Email verification failed: Incorrect verification code for user '{username}'")
+            return render_template("index.html", error="Incorrect verification code")
+ 
+
 
 def UserNameCheck(user):
-    connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE username= ?", (user,))
-    CheckUser = cursor.fetchone()
-    connection.close()
-    return CheckUser
+    with sqlite3.connect('database/database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT username, email, password FROM users WHERE LOWER(username) = LOWER(?)", (user,))
+        return cursor.fetchone()
 
 def EmailCheck(email):
-    connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE email= ?", (email,))
-    CheckEmail = cursor.fetchone()
-    connection.close()
-    return CheckEmail
+    with sqlite3.connect('database/database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE LOWER(email)= LOWER(?)", (email,))
+        return cursor.fetchone()
 
 def PasswordCheck(password):
     if len(password)>=8 and any(char.isdigit() for char in password) and any(char.isupper() for char in password) and any(not char.isalnum() for char in password):
@@ -108,46 +128,77 @@ def PasswordCompare(hashed_password, provided_password):
     return bcrypt.checkpw(provided_password.encode(), hashed_password)
 
 def AddUser(username, email, password):
-    connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (username, email, password,)) 
-    connection.commit()
-    connection.close()
+    with sqlite3.connect('database/database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (username.lower(), email.lower(), password))
+        conn.commit()
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=["POST"])
 def login():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        
+        user_data = UserNameCheck(username)
+        if user_data is None:
+            logging.warning(f"Login failed: User '{username}' does not exist")
+            return render_template('login.html', error="User does not exist.")
+        if not PasswordCompare(user_data[2], password):
+            logging.warning(f"Login failed: Incorrect password for user '{username}'")
+            return render_template('login.html', error="Incorrect password.")
+
+        access_token = create_access_token(identity=username)
+        response = make_response(redirect(url_for('home'))) 
+        response.set_cookie('access_token_cookie', access_token, secure=True, samesite='Strict') 
+        return response
+
     return render_template('login.html')
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = PasswordHash(request.form['password'])
-        checkPassword = request.form['re-enter password']
-        
-        if UserNameCheck(username) == None and len(username) >= 5 and EmailCheck(email) == None and PasswordCompare(password, checkPassword) == True and PasswordCheck(checkPassword) == True:
-            checkPassword = None
-            # Generate and send email verification code
-            emailCode = EmailVerificationCode(email)  # Sends email and stores the code in session
-            # Store the user's registration details temporarily (don't add them yet)
-            session['user_data'] = {'username': username, 'email': email, 'password': password}
-            # Now redirect to the email verification page
-            return redirect(url_for('verify_email'))
-        else:
-            return render_template('signup.html') 
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+        checkPassword = request.form.get('re-enter password', '').strip()
+
+        if not username or len(username) < 5:
+            logging.warning(f"SignUp failed: Username '{username}' is too short")
+            return render_template('signup.html', error="Username must be at least 5 characters long.")
+        if not email or '@' not in email:
+            logging.warning(f"SignUp failed: Email '{email}' is invalid")
+            return render_template('signup.html', error="Invalid email address.")
+        if not PasswordCheck(password):
+            logging.warning(f"SignUp failed: Password is invalid for user: '{username}'")
+            return render_template('signup.html', error="Password must be at least 8 characters and contain a digit, an uppercase letter, and a special character.")
+        if password != checkPassword:
+            logging.warning(f"SignUp failed: Passwords do not match for user: '{username}'")
+            return render_template('signup.html', error="Passwords do not match.")
+        if UserNameCheck(username) is not None:
+            logging.warning(f"SignUp failed: Username '{username}' is already taken")
+            return render_template('signup.html', error="Username is already taken.")
+        if EmailCheck(email) is not None:
+            logging.warning(f"SignUp failed: Email '{email}' is already registered")
+            return render_template('signup.html', error="Email is already registered.")
+
+        password_hashed = PasswordHash(password)
+        emailCode = str(random.randint(1000, 1000000))
+        SendMail(email, "Library activation code", str(emailCode))
+        return redirect(url_for('EmailVerificationCode', email=email, username=username, hashed_password=password_hashed, code=PasswordHash(emailCode)))
     return render_template('signup.html')
 
-
 @app.route('/bookCatalogue', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
 def bookCatalogue():
-    current_user = get_jwt_identity()  
-    return render_template('catalogue.html')
+    with sqlite3.connect('database/database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM catalogue")
+        return render_template('catalogue.html', cataloguedata=cursor.fetchall())
 
 @app.route('/contact')
 def contact():
