@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, make_response, redirect, url_for, jsonify, flash
-from flask_jwt_extended import JWTManager, create_access_token
+from flask import Flask, render_template, request, make_response, redirect, url_for, jsonify
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 from flask_wtf.csrf import CSRFProtect
-from flask_limiter.errors import RateLimitExceeded
+from functools import wraps
 import sqlite3
 from dotenv import load_dotenv
 import os
@@ -12,9 +12,7 @@ import ssl
 import random
 import bcrypt
 import logging
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-import redis
+import re
 
 
 app = Flask(__name__)
@@ -22,15 +20,9 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 jwt = JWTManager(app)
 csrf = CSRFProtect(app)
-redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
-limiter = Limiter(get_remote_address, app=app, storage_uri=os.getenv("REDIS_URL", "redis://localhost:6379"))
 logging.basicConfig(level=logging.INFO) 
 load_dotenv()
 
-@app.errorhandler(RateLimitExceeded)
-def ratelimit_handler(e):
-    flash("Rate limit exceeded. Please try again later.", "error")
-    return redirect(url_for('login'))
 
 """
 connection = sqlite3.connect('/workspaces/HAT1/database/database.db')
@@ -47,7 +39,21 @@ cursor = connection.cursor()
 cursor.execute("DELETE FROM users")
 connection.commit()
 connection.close()
+
 """
+def jwt_optional_only(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            verify_jwt_in_request(locations=['cookies'])
+            return jsonify({"msg": "This is a protected endpoint"})
+        except:
+            return fn(*args, **kwargs)
+    return wrapper
+
+def is_valid_input(text):
+    pattern = r"^[A-Za-z0-9`~!@#$%^&*()\-_{}\[\]\\|;:'\",<.>/?]+$"
+    return re.match(pattern, text) is not None
 
 
 def SendMail(recipient, title, content):
@@ -68,9 +74,9 @@ def SendMail(recipient, title, content):
 
 
 @app.route('/verify_email', methods=['GET', 'POST'])
+@jwt_optional_only
 def EmailVerificationCode():
     if request.method == 'GET':
-        # Get data from query parameters on GET
         username = request.args.get("username")  
         email = request.args.get("email")  
         hashed_password = request.args.get("hashed_password")
@@ -96,7 +102,6 @@ def EmailVerificationCode():
         else:
             logging.warning(f"Email verification failed: Incorrect verification code for user '{username}'")
             return render_template("index.html", error="Incorrect verification code")
- 
 
 
 def UserNameCheck(user):
@@ -112,7 +117,7 @@ def EmailCheck(email):
         return cursor.fetchone()
 
 def PasswordCheck(password):
-    if len(password)>=8 and any(char.isdigit() for char in password) and any(char.isupper() for char in password) and any(not char.isalnum() for char in password):
+    if len(password)>=8 and any(char.isdigit() for char in password) and any(char.isupper() for char in password) and any(not char.isalnum() for char in password) and len(password) < 20:
         return True
     return False
 
@@ -138,12 +143,17 @@ def home():
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute", methods=["POST"])
+@jwt_optional_only
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
-        
+        if len(username) > 20 and len(password) > 20:
+            logging.warning(f"Login failed: User '{username}' does not exist")
+            return render_template('login.html', error="User does not exist.")
+        if not is_valid_input(username) or not is_valid_input(password):
+            logging.warning(f"Login failed: Invalid characters in username or password")
+            return render_template('login.html', error="Invalid characters in username or password.")
         user_data = UserNameCheck(username)
         if user_data is None:
             logging.warning(f"Login failed: User '{username}' does not exist")
@@ -161,19 +171,22 @@ def login():
 
 
 @app.route('/signup', methods=['GET', 'POST'])
+@jwt_optional_only
 def signup():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
         checkPassword = request.form.get('re-enter password', '').strip()
-
-        if not username or len(username) < 5:
+        if not username or len(username) < 5 or len(username) > 20:
             logging.warning(f"SignUp failed: Username '{username}' is too short")
-            return render_template('signup.html', error="Username must be at least 5 characters long.")
-        if not email or '@' not in email:
+            return render_template('signup.html', error="Username must be at least 5 characters long, or username is too long.")
+        if not is_valid_input(username) or not is_valid_input(email) or not is_valid_input(password) or not is_valid_input(checkPassword):
+            logging.warning(f"SignUp failed: Invalid characters in username, email, or password")
+            return render_template('signup.html', error="Invalid characters in username, email, or password.")
+        if not email or '@' not in email or '.' not in email or len(email) > 20:
             logging.warning(f"SignUp failed: Email '{email}' is invalid")
-            return render_template('signup.html', error="Invalid email address.")
+            return render_template('signup.html', error="Invalid email address, either it is too long or the syntax is incorrect.")
         if not PasswordCheck(password):
             logging.warning(f"SignUp failed: Password is invalid for user: '{username}'")
             return render_template('signup.html', error="Password must be at least 8 characters and contain a digit, an uppercase letter, and a special character.")
@@ -194,7 +207,10 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/bookCatalogue', methods=['GET', 'POST'])
+@jwt_required(locations=['cookies'])
 def bookCatalogue():
+    if UserNameCheck(get_jwt_identity()) is None:
+        return redirect(url_for('home'))
     with sqlite3.connect('database/database.db') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM catalogue")
@@ -205,6 +221,7 @@ def contact():
     return render_template('contact.html')
 
 @app.route('/signout')
+@jwt_required(locations=['cookies'])
 def signout():
     response = make_response(render_template("index.html"))
     response.set_cookie('access_token_cookie', '', expires=0)

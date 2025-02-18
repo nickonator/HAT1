@@ -18,11 +18,11 @@
     </nav>
 
     <h2>Login</h2>
-    <form action="{{ url_for('login') }}" method="POST">
+    <form action="{{ url_for('login') }}" method="POST" onsubmit="disableButton()">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <p>Username: <input type="text" name="username" required /></p>
         <p>Password: <input type="password" name="password" required /></p>
-        <p><input type="submit" value="Login" /></p>
+        <p><input type="submit" value="Login" id="submitBTN"/></p>
         {% if error %}
             <p style="color: red;">{{ error }}</p>
         {% endif %}
@@ -34,5 +34,11 @@
             {% endfor %}
         {% endwith %}
     </form>
+    <script>
+        function disableButton()
+        {
+            document.getElementById("submitBTN").disabled = true;
+        }
+    </script>
 </body>
 </html>
