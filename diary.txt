@@ -1,28 +1,28 @@
 28/11/2024
 - created the HAT1 repository and set up the codespace.
 
-3/02/2024
+3/02/2025
 - import flask module and JWT, completed directory setup/structure
 
-5/02/2024
+5/02/2025
 - finished creating database structure, added user and catalogue tables and fields within them.
 
-11/02/2024
+11/02/2025
 - created basic html structure for most webpages, basic css styling, created login.html, signup.html, catalogue.html, index.html, contact.html
 - imported a few extra modules, added slightly more security checks to signup and login, tried to implement JWT token grantin unsuccessfully.
 - finalised storyboard
 
-12/02/2024
+12/02/2025
 - Added password hashing and fixed multiple bugs
 - fixed JWT token problems by storing in cookies, but still needs some work
 
-13/02/2024
+13/02/2025
 - Added javascript logic to html pages to control what displays in the navigation bar based off token status
 - changed th HTML format to make it cleaner and more efficient/useful.
 - Did major fixes to JWT cookie storing and accessing, it is much better now
 - Added email verification for people signing up
 
-16/02/2024
+16/02/2025
 -  major security fixes for sign up and log in pages
 - started storing sensitive information in environment variables
 - added rate limits to prevent spamming
@@ -33,7 +33,7 @@
 - added error logging, error messages, and errors can be displayed to users in a user-friendly way (it will pop up as red text below the sign in or signup page if they incorrectly input something)
 - added CSRF security.
 
-18/02/2024
+18/02/2025
 - rate limits and redis was causing some problems so I got rid of it
 - created a new decorator to check if users do not have tokens.
 - added more security checks for login submissions as well as error logging, same with the signup page.
@@ -43,4 +43,9 @@
 - using regex to prevent users from entering invalid characters which could harm the database or server.
 - created directory structure diagram with ASCII called DirectoryStructure.png
 
-
+24/02/2025
+- created  dedicated file for javascript containg all the previous logic
+- No longer storing email verify values in the html page, bu in session storage
+- populated the catalogue table in the database with information
+- added many new images for the catalogue
+- reformated most html pages to account for new javascript changes
