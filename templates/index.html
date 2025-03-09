@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
 <body>
 
     <nav>
@@ -15,7 +14,7 @@
                     <li><a href="{{ url_for('home') }}">Home</a></li>
                     <li><a href="{{ url_for('login') }}">Log In</a></li>
                     <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('settings') }}">Settings</a></li>
                 </ul>
             </div>
 
@@ -23,17 +22,25 @@
                 <ul>
                     <li><a href="{{ url_for('home') }}">Home</a></li>
                     <li><a href="{{ url_for('bookCatalogue') }}">Book Catalogue</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('settings') }}">Settings</a></li>
                     <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
                 </ul>
             </div>
         </ul>
     </nav>
 
-    <header>
-        <h1>Welcome to Our Website</h1>
-        <p>Your go-to platform for amazing content.</p>
-    </header>
+    
+    <h1>Welcome to Our Website</h1>
+    <p>To access the book catalogue, you must first signup and create an account.
+        Once signed up, you should be able to see a new option in your navigation bar
+        that says "Book Catalogue". To signout, just click the signout button in the 
+        naviagtion bar. If you want to access the book catalogue again, you must sign-in
+        (not signup since you already have an account and your information is saved).
+    </p>
+    <br>
+    <h2>Contact Us</h2>
+    <a href="mailto:libraryman752@gmail.com">Email: libraryman752@gmail.com</a>
+    <p>Phone: 0433950144</p>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 

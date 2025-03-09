@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,28 +8,47 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+    <script>
+        function applySettings() {
+        if (localStorage.getItem("lightMode") === "enabled") {
+            document.body.classList.add("light-modestorage");
+            document.body.classList.remove("dark-modestorage");
+            document.body.className = "light-modestorage";
+        } else {
+            document.body.classList.add("dark-modestorage");
+            document.body.classList.remove("light-modestorage");
+            document.body.className = "dark-modestorage";
+
+        }
+        }
+        applySettings();
+    </script>
 
     <nav>
         <ul>
             <li><a href="{{ url_for('home') }}">Home</a></li>
             <li><a href="{{ url_for('login') }}">Log In</a></li>
             <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-            <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+            <li><a href="{{ url_for('settings') }}">Settings</a></li>
         </ul>
     </nav>
 
-    <h2>Sign Up</h2>
-    <form action="{{ url_for('signup') }}" method="POST" onsubmit="disableButton()">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <form class="signup" action="{{ url_for('signup') }}" method="POST" onsubmit="disableButton()">
+        <h3>Signup Here</h3>
         <p><input type="text" placeholder="Username" name="username" required /></p>
         <p><input type="text" placeholder="Email" name="email" required /></p>
         <p><input type="password" placeholder="Password" name="password" required /></p>
         <p><input type="password" placeholder="Re-Enter Password" name="re-enter password" required /></p>
-        <p><input type="submit" value="Sign Up" id="submitBTN" /></p>
+        <button type="submit" value="Sign Up" id="submitBTN">Sign Up</button>
         {% if error %}
             <p style="color: red;">{{ error }}</p>
         {% endif %}
     </form>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 </body>
 </html>

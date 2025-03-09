@@ -1,28 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
 </head>
+
 <body>
+
+    <script>
+        function applySettings() {
+        if (localStorage.getItem("lightMode") === "enabled") {
+            document.body.classList.add("light-modestorage");
+            document.body.classList.remove("dark-modestorage");
+            document.body.className = "light-modestorage";
+        } else {
+            document.body.classList.add("dark-modestorage");
+            document.body.classList.remove("light-modestorage");
+            document.body.className = "dark-modestorage";
+    
+        }
+        }
+        applySettings();
+    </script>
+    
 
     <nav>
         <ul>         
             <li><a href="{{ url_for('home') }}">Home</a></li>
             <li><a href="{{ url_for('login') }}">Log In</a></li>
             <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-            <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+            <li><a href="{{ url_for('settings') }}">Settings</a></li>
         </ul>
     </nav>
 
-    <h2>Login</h2>
-    <form action="{{ url_for('login') }}" method="POST" onsubmit="disableButton()">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <form class="login" action="{{ url_for('login') }}" method="POST" onsubmit="disableButton()">
+        <h3>Log In Here</h3>
         <p><input type="text" placeholder="Username" name="username" required /></p>
         <p><input type="password" placeholder="password" name="password" required /></p>
-        <input type="submit" id="submitBTN"></input>
+        <button type="submit" value="Log In" id="submitBTN">Log In</button>
         {% if error %}
             <p style="color: red;">{{ error }}</p>
         {% endif %}
@@ -34,6 +58,8 @@
             {% endfor %}
         {% endwith %}
     </form>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+
 </body>
 </html>
