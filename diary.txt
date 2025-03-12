@@ -54,6 +54,31 @@
 - Edited DirectoryStructure.png since there have been changes in file structure.
 - Edited Storyboard.png to better represent what my website looks like.
 
+13/03/2025
+- Added comments to most pages
+- Imported the Gantt chart
+- Added pylint test screenshots
+- Added Lighthouse test screenshots
+- Edited DirectoryStructure.png
+
+PYLINT TESTING
+Screenshot1.png, score: 7.94/10
+ - Had to fix trailing white spaces
+ - Adding comments above functions (doc-strings)
+ - ordering the imports in the correct order
+ - Converting variable and function name to match snake case naming style.
+Screenshot2.png, score: 9.05/10
+ - Had to deleting else statements after return statements
+ - Reducing the sizes of some lines (some lines were too long) using black python code formatter
+ - Too many return statements in one function, had to add more conitional statements (IF statements) to reduce the number of return statements.
+Screenshot3.png, score: 9.95/10
+ - Some conditional statements had too many conditions in them, had to break it up into multiple conditional statements. 
+ - The only thing that could not be fixed was not being specific enough in my exception handling (line 59, app.py)
+
+LIGHTHOUSE TESTING
+ - Lighthouse performance testing got 99/100
+ - The LighthouseContinued.png has all the other information about the catalogue performance.
+
 -------REFERENCES-------
 PYTHON REFERENCES:
     How I created decorators: https://www.freecodecamp.org/news/python-decorators-explained-with-examples/
@@ -110,3 +135,7 @@ BOOK IMAGES:
     Ulysses: https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.audible.com.au%2Fpd%2FUlysses-Audiobook%2FB00FQI63IO&psig=AOvVaw01LQrdcpYfkKIl9M-YpHte&ust=1741601613509000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCLixpt3h_IsDFQAAAAAdAAAAABAE
     War and Peace: https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.harpercollins.ca%2F9780007396993%2Fwar-and-peace-original-version%2F&psig=AOvVaw34wzQtis1t_2mge2b5OE08&ust=1741601629673000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCNC13fPh_IsDFQAAAAAdAAAAABAE
     Wuthering Heights: https://www.google.com/url?sa=i&url=https%3A%2F%2Fclassic-literature.fandom.com%2Fwiki%2FWuthering_Heights&psig=AOvVaw1EANU_oMuaQeOCRg213-FN&ust=1741601676471000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCIjS3oDi_IsDFQAAAAAdAAAAABAE
+
+
+
+
