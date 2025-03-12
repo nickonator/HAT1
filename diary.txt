@@ -60,6 +60,8 @@
 - Added pylint test screenshots
 - Added Lighthouse test screenshots
 - Edited DirectoryStructure.png
+- Deleted .gitignore
+- Made text colour better looking for dark and light mode
 
 PYLINT TESTING
 Screenshot1.png, score: 7.94/10
